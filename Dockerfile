@@ -7,6 +7,6 @@ USER 0
 ENV PIP_NO_CACHE_DIR=1
 RUN pip install -r requirements.txt
 
-COPY ingest.py ingest.py
+COPY capstone.py capstone.py
 
-CMD ["python3", "/app/ingest.py"]
+CMD ["python3", "/app/capstone.py"]
