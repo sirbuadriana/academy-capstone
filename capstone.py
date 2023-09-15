@@ -54,7 +54,7 @@ def get_clean_df(spark):
     return clean
 
 def get_snowflake_credentials():
-    client = botocore.session.get_session().create_client('secretsmanager')
+    client = botocore.session.get_session().create_client('secretsmanager', region_name='eu-west-1')
     cache_config = SecretCacheConfig()
     cache = SecretCache( config = cache_config, client = client)
     secret = cache.get_secret_string('snowflake/capstone/login')
