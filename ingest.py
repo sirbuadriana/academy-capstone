@@ -29,13 +29,8 @@ def get_spark_session(name: str = None) -> SparkSession:
     )
 
 
-
-
-if __name__ == "__main__":
-    spark = get_spark_session("ingest")
-    spark.sparkContext.setLogLevel("ERROR")
-
-    logger.info("Reading data from S3...")
+def get_clean_df(spark):
+   
     df = spark.read.json("s3a://dataminded-academy-capstone-resources/raw/open_aq/")
 
     clean = (
@@ -51,5 +46,14 @@ if __name__ == "__main__":
         .withColumn("local", sf.to_date(sf.col("local")))
     )
 
-    clean.show()
+    return clean
+
+
+if __name__ == "__main__":
+    spark = get_spark_session("ingest")
+    spark.sparkContext.setLogLevel("ERROR")
+    df = get_clean_df(spark)
+    df.show()
+    logger.info("Reading data from S3...")
+
     logger.info("Done!")

@@ -9,6 +9,10 @@ logger.setLevel(logging.INFO)
 
 
 from snowflake import get_snowflake_credentials
+from ingest import get_clean_df
+
+
+SNOWFLAKE_SOURCE_NAME = "net.snowflake.spark.snowflake"
 
 def get_spark_session(name: str = None) -> SparkSession:
     return (
@@ -32,26 +36,23 @@ def get_spark_session(name: str = None) -> SparkSession:
 
 
 
-
 if __name__ == "__main__":
-    spark = get_spark_session("ingest")
-    spark.sparkContext.setLogLevel("ERROR")
+    credentials = get_snowflake_credentials()
+    spark=get_spark_session("snowflake-connect")
+    df = get_clean_df(spark)
 
-    logger.info("Reading data from S3...")
-    df = spark.read.json("s3a://dataminded-academy-capstone-resources/raw/open_aq/")
+    sfOptions = {
+    "sfURL": credentials["URL"],
+    "sfAccount": "yw41113",
+    "sfUser": credentials["USER_NAME"],
+    "sfPassword": credentials["PASSWORD"],
+    "sfDatabase":  credentials["DATABASE"],
+    "sfSchema": "ADRIANA_DM",
+    "sfWarehouse": credentials["WAREHOUSE"]}
 
-    clean = (
-        df.select(
-            [
-                sf.col(colname)
-                if df.schema[colname].dataType.typeName() != "struct"
-                else sf.col(f"{colname}.*")
-                for colname in df.columns
-            ]
-        )
-        .withColumn("utc", sf.to_date(sf.col("utc")))
-        .withColumn("local", sf.to_date(sf.col("local")))
-    )
-
-    clean.show()
-    logger.info("Done!")
+      
+    df.write.format(SNOWFLAKE_SOURCE_NAME) \
+                .options(**sfOptions) \
+                .option("dbtable", "weather") \
+                .mode("append").save()
+        
