@@ -79,7 +79,7 @@ if __name__ == "__main__":
     df.write.format(SNOWFLAKE_SOURCE_NAME) \
                 .options(**sfOptions) \
                 .option("dbtable", "weather") \
-                .mode("append").save()
+                .mode("overwrite").save()
 
 
     
